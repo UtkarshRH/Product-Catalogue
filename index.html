@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Catalog</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        #cartForm {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: 0 auto;
+            max-width: 400px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        #result {
+        display: none;
+        margin-top: 20px;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        transition: opacity 0.5s ease-in-out;
+        }
+
+        #result h3 {
+            color: #333;
+            text-align: center;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        li:hover {
+            transform: scale(1.02);
+        }
+
+        p {
+            margin: 10px 0;
+            color: #777;
+        }
+
+        button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        button:hover {
+            background-color: #9dd617;
+        }
+    </style>
+</head>
+<body>
+    <h2>Product Catalog</h2>
+
+    <div id="cartForm">
+        <label for="productA">Product A Quantity:</label>
+        <input type="number" id="productA" min="0">
+
+        <label for="productB">Product B Quantity:</label>
+        <input type="number" id="productB" min="0">
+
+        <label for="productC">Product C Quantity:</label>
+        <input type="number" id="productC" min="0">
+
+        <button onclick="calculateTotal()">Calculate Total</button>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        function calculateTotal() {
+            const productAQuantity = parseInt(document.getElementById("productA").value) || 0;
+            const productBQuantity = parseInt(document.getElementById("productB").value) || 0;
+            const productCQuantity = parseInt(document.getElementById("productC").value) || 0;
+
+            const products = {
+                "Product A": { Price: 20, GiftWrapFee: 1 },
+                "Product B": { Price: 40, GiftWrapFee: 1 },
+                "Product C": { Price: 50, GiftWrapFee: 1 },
+            };
+
+            const cart = {};
+            let total = 0;
+            let totalQuantity = 0;
+
+            for (const [product, info] of Object.entries(products)) {
+                const quantity = eval(`product${product.charAt(product.length - 1)}Quantity`);
+                const totalProductAmount = quantity * info.Price;
+                const giftWrapFee = quantity * info.GiftWrapFee;
+                const totalAmount = totalProductAmount + giftWrapFee;
+
+                cart[product] = { Quantity: quantity, TotalAmount: totalAmount };
+
+                total += totalAmount;
+                totalQuantity += quantity;
+            }
+
+            const subtotal = total;
+
+        // discount rules
+            let discountName = "";
+            let discountAmount = 0;
+
+            // "flat_10_discount"
+            if (total > 200) {
+                discountName = "flat_10_discount";
+                discountAmount = 10;
+            }
+
+            // "bulk_5_discount"
+            for (const [product, details] of Object.entries(cart)) {
+                if (details.Quantity > 10) {
+                    discountName = "bulk_5_discount";
+                    discountAmount += 0.05 * details.TotalAmount;
+                }
+            }
+
+            // "bulk_10_discount"
+            if (totalQuantity > 20) {
+                discountName = "bulk_10_discount";
+                discountAmount = 0.1 * total;
+            }
+
+            // "tiered_50_discount"
+            for (const [product, details] of Object.entries(cart)) {
+                if (totalQuantity > 30 && details.Quantity > 15) {
+                    discountName = "tiered_50_discount";
+                    discountAmount = 0.5 * (details.Quantity - 15) * details.TotalAmount / details.Quantity;
+                }
+            }
+
+            total -= discountAmount;
+
+            const shippingFee = 5 * Math.floor(totalQuantity / 10);
+            total += shippingFee;
+
+            const resultDiv = document.getElementById("result");
+            resultDiv.style.display = "block"; 
+            resultDiv.innerHTML = `
+                <h3>Order Details:</h3>
+                <ul>
+                    ${Object.entries(cart).map(([product, details]) =>
+                        `<li>${product}: Quantity - ${details.Quantity}, Total Amount - $${details.TotalAmount}</li>`
+                    ).join("")}
+                </ul>
+                <p>Subtotal: $${subtotal}</p>
+                <p>Discount Applied: ${discountName}, Amount - $${discountAmount.toFixed(2)}</p>
+                <p>Shipping Fee: $${shippingFee}</p>
+                <h3>Total: $${total.toFixed(2)}</h3>`;
+        }
+    </script>
+</body>
+</html>
